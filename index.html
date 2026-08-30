@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111"><link rel="manifest" href="manifest.json">
+<title>My Daily V5</title>
+<style>
+:root{--bg:#f4f4f6;--card:#fff;--text:#171717;--muted:#777;--line:#e4e4e7;--soft:#eeeef1}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
+body.dark{--bg:#101012;--card:#1b1b1f;--text:#f7f7f7;--muted:#aaa;--line:#303036;--soft:#29292e}
+.wrap{max-width:600px;margin:auto;min-height:100vh;padding:20px 15px 96px}h1{font-size:31px;margin:0 0 4px}h2{font-size:18px;margin:0 0 12px}.muted{color:var(--muted)}.small{font-size:12px}
+header,.row{display:flex;justify-content:space-between;align-items:center;gap:10px}header{margin-bottom:16px}
+.card{background:var(--card);border-radius:22px;padding:18px;margin:12px 0;box-shadow:0 2px 15px #0000000a}.hero{background:var(--text);color:var(--bg)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tile{background:var(--soft);border-radius:17px;padding:14px}.label{font-size:11px;color:var(--muted)}.big{font-size:37px;font-weight:850}.stat{font-size:25px;font-weight:800}
+.progress{height:9px;background:#ddd;border-radius:20px;overflow:hidden;margin-top:10px}.bar{height:100%;background:var(--text);width:0;border-radius:20px}.hero .bar{background:#fff}
+.section{display:none}.section.active{display:block}button{font:inherit}.icon{width:42px;height:42px;border:0;border-radius:14px;background:var(--card);color:var(--text);font-size:19px}
+.primary{border:0;border-radius:13px;background:var(--text);color:var(--bg);padding:11px 14px}input{min-width:0;border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:12px;padding:10px;outline:none}.add{display:flex;gap:7px;margin-top:10px}.add input{flex:1}
+.task,.entry{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.task:first-child,.entry:first-child{border-top:0}.check{width:21px;height:21px;border:2px solid #aaa;border-radius:50%;flex:none}.done .check{background:var(--text);border-color:var(--text)}.done .check:after{content:"✓";color:var(--bg);display:block;text-align:center;line-height:17px;font-size:12px}.done .tasktext{text-decoration:line-through;color:var(--muted)}
+.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}.authbox{width:100%;max-width:420px;background:var(--card);border-radius:26px;padding:25px;box-shadow:0 8px 30px #00000012}.authbox input{width:100%;margin:6px 0}.authbox button{width:100%;margin-top:8px}.badge{display:inline-block;background:var(--soft);border-radius:20px;padding:7px 10px;font-size:11px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px;z-index:5}body.dark nav{background:#151518ed}nav button{flex:1;max-width:92px;border:0;background:transparent;color:var(--muted);padding:6px 1px;border-radius:12px;font-size:17px}nav span{font-size:9px}nav button.active{background:var(--soft);color:var(--text);font-weight:700}.hidden{display:none}
+@media(max-width:380px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div id="auth" class="auth"><div class="authbox"><h1>My Daily</h1><p class="muted">Your personal daily-life assistant.</p>
+<input id="email" type="email" placeholder="Email"><input id="password" type="password" placeholder="Password">
+<button class="primary" onclick="signUp()">Create account</button><button class="primary" onclick="signIn()">Sign in</button>
+<p id="authStatus" class="small muted"></p><span class="badge">☁️ Cloud connected</span></div></div>
+
+<div id="app" class="wrap hidden">
+<header><div><h1>My Daily</h1><div id="date" class="muted small"></div></div><button class="icon" onclick="show('settings')">⚙️</button></header>
+<section id="home" class="section active">
+<div class="card hero"><div class="small">TODAY</div><div class="row"><div class="big" id="pct">0%</div><div class="small" id="tc">0/0 tasks</div></div><div class="progress"><div id="bar" class="bar"></div></div></div>
+<div class="grid"><div class="tile"><div class="label">SPENT TODAY</div><div class="stat">€<span id="spent">0</span></div></div><div class="tile"><div class="label">WATER</div><div class="stat"><span id="hw">0</span>L</div></div><div class="tile"><div class="label">CALORIES</div><div class="stat"><span id="hc">0</span></div></div><div class="tile"><div class="label">PROTEIN</div><div class="stat"><span id="hp">0</span>g</div></div></div>
+<div class="card"><div class="row"><h2>Today</h2><button class="icon" style="width:34px;height:34px" onclick="show('tasks')">＋</button></div><div id="homeTasks"></div></div></section>
+
+<section id="tasks" class="section"><div class="card"><h2>Tasks</h2><div class="add"><input id="taskText" placeholder="Task…"><input id="taskDate" type="date"><button class="primary" onclick="addTask()">Add</button></div><div id="taskList"></div></div></section>
+
+<section id="money" class="section"><div class="card"><h2>Money</h2><div class="big">€<span id="net">0</span></div><div class="grid"><div class="tile">Income<br><strong>€<span id="income">0</span></strong></div><div class="tile">Expenses<br><strong>€<span id="expense">0</span></strong></div></div><div class="add"><input id="moneyAmount" type="number" step=".01" placeholder="Amount €"><input id="moneyDesc" placeholder="Description"><button class="primary" onclick="addExpense()">Add</button></div><div id="moneyList"></div></div></section>
+
+<section id="fitness" class="section"><div class="card"><h2>Fitness</h2><div class="grid"><div class="tile">Weight<br><strong><span id="weight">—</span> kg</strong></div><div class="tile">Water<br><strong><span id="fw">0</span> L</strong></div></div><div class="add"><input id="weightInput" type="number" step=".1" placeholder="Weight kg"><button class="primary" onclick="saveWeight()">Save</button></div><div class="add"><button class="primary" style="flex:1" onclick="waterAdd(.25)">+250ml</button><button class="primary" style="flex:1" onclick="waterAdd(.5)">+500ml</button></div></div></section>
+
+<section id="food" class="section"><div class="card"><h2>Nutrition</h2><div class="grid"><div class="tile">Calories<br><strong><span id="fc">0</span></strong></div><div class="tile">Protein<br><strong><span id="fp">0</span>g</strong></div></div><div class="add"><input id="foodName" placeholder="Food"><input id="foodCal" type="number" placeholder="kcal"><input id="foodProt" type="number" placeholder="protein g"><button class="primary" onclick="addFood()">Add</button></div><div id="foodList"></div></div></section>
+
+<section id="settings" class="section"><div class="card"><h2>Account & settings</h2><p id="userEmail" class="muted small"></p><p class="small">☁️ Supabase: connected</p><button class="primary" style="width:100%" onclick="syncNow()">Sync now</button><button class="primary" style="width:100%;margin-top:8px" onclick="toggleDark()">Toggle dark mode</button><button class="primary" style="width:100%;margin-top:8px" onclick="signOut()">Sign out</button></div></section>
+</div>
+<nav id="nav" class="hidden"><button class="active" data-s="home" onclick="show('home')">⌂<br><span>Home</span></button><button data-s="tasks" onclick="show('tasks')">✓<br><span>Tasks</span></button><button data-s="money" onclick="show('money')">€<br><span>Money</span></button><button data-s="fitness" onclick="show('fitness')">♙<br><span>Fitness</span></button><button data-s="food" onclick="show('food')">🍽<br><span>Food</span></button></nav>
+
+<script type="module">
+import {createClient} from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+const SUPABASE_URL="https://vlietccqottggxipndbe.supabase.co", SUPABASE_PUBLISHABLE_KEY="sb_publishable_TYrYyYMllyROvY16PECUcw_ayAM944-";
+const supabase=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const KEY="mydaily-v5-local";
+let data=JSON.parse(localStorage.getItem(KEY)||'{"tasks":[],"transactions":[],"water":0,"weight":0,"foods":[],"dark":false}');
+const $=id=>document.getElementById(id), today=()=>new Date().toISOString().slice(0,10);
+function saveLocal(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function msg(t){$("authStatus").textContent=t}
+window.signUp=async()=>{const email=$("email").value.trim(),password=$("password").value;if(!email||!password)return msg("Enter email and password.");const {error}=await supabase.auth.signUp({email,password});msg(error?error.message:"Account created. Check your email if confirmation is enabled.")};
+window.signIn=async()=>{const email=$("email").value.trim(),password=$("password").value;const {data:d,error}=await supabase.auth.signInWithPassword({email,password});if(error)return msg(error.message);await enter(d.user)};
+async function enter(user){$("auth").classList.add("hidden");$("app").classList.remove("hidden");$("nav").classList.remove("hidden");$("userEmail").textContent=user.email||"";render();const {data:row,error}=await supabase.from("user_data").select("payload").eq("user_id",user.id).maybeSingle();if(!error&&row?.payload){data={...data,...row.payload};saveLocal()}}
+window.signOut=async()=>{await supabase.auth.signOut();$("auth").classList.remove("hidden");$("app").classList.add("hidden");$("nav").classList.add("hidden")};
+supabase.auth.getSession().then(async({data})=>{if(data.session)await enter(data.session.user)});
+
+window.show=id=>{document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));$(id).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x.dataset.s===id))};
+window.addTask=()=>{const t=$("taskText").value.trim();if(!t)return;data.tasks.push({text:t,date:$("taskDate").value||today(),done:false});$("taskText").value="";saveLocal()};
+window.toggleTask=i=>{data.tasks[i].done=!data.tasks[i].done;saveLocal()};
+window.addExpense=()=>{const a=+$("moneyAmount").value,d=$("moneyDesc").value.trim()||"Expense";if(!a)return;data.transactions.unshift({amount:a,desc:d,type:"expense",date:today()});$("moneyAmount").value="";$("moneyDesc").value="";saveLocal()};
+window.saveWeight=()=>{const w=+$("weightInput").value;if(w>0)data.weight=w;$("weightInput").value="";saveLocal()};
+window.waterAdd=x=>{data.water=+(data.water+x).toFixed(2);saveLocal()};
+window.addFood=()=>{const n=$("foodName").value.trim(),c=+$("foodCal").value,p=+$("foodProt").value;if(!n)return;data.foods.push({name:n,cal:c||0,prot:p||0,date:today()});$("foodName").value="";$("foodCal").value="";$("foodProt").value="";saveLocal()};
+window.toggleDark=()=>{data.dark=!data.dark;saveLocal()};
+window.syncNow=async()=>{const {data:u}=await supabase.auth.getUser();if(!u.user)return alert("Please sign in.");const {error}=await supabase.from("user_data").upsert({user_id:u.user.id,payload:data,updated_at:new Date().toISOString()});alert(error?error.message:"Synced successfully ☁️")};
+function render(){document.body.classList.toggle("dark",data.dark);$("date").textContent=new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});const ts=data.tasks.filter(x=>x.date===today()),done=ts.filter(x=>x.done).length,p=ts.length?Math.round(done/ts.length*100):0;$("pct").textContent=p+"%";$("tc").textContent=done+"/"+ts.length+" tasks";$("bar").style.width=p+"%";$("taskList").innerHTML=data.tasks.map((t,i)=>`<div class="task ${t.done?"done":""}" onclick="toggleTask(${i})"><div class="check"></div><div class="tasktext" style="flex:1">${esc(t.text)} <span class="muted small">· ${t.date}</span></div></div>`).join("")||'<div class="muted small">No tasks.</div>';$("homeTasks").innerHTML=ts.map(t=>`<div class="task ${t.done?"done":""}" onclick="toggleTask(${data.tasks.indexOf(t)})"><div class="check"></div><div class="tasktext">${esc(t.text)}</div></div>`).join("")||'<div class="muted small">No tasks today.</div>';const ex=data.transactions.filter(x=>x.type==="expense"),inc=data.transactions.filter(x=>x.type==="income"),sum=a=>a.reduce((s,x)=>s+x.amount,0);$("expense").textContent=sum(ex).toFixed(2);$("income").textContent=sum(inc).toFixed(2);$("net").textContent=(sum(inc)-sum(ex)).toFixed(2);$("spent").textContent=sum(ex.filter(x=>x.date===today())).toFixed(2);$("hw").textContent=data.water;$("fw").textContent=data.water;$("weight").textContent=data.weight||"—";const foods=data.foods.filter(x=>x.date===today()),c=sum(foods.map(x=>x.cal)),pr=sum(foods.map(x=>x.prot));$("cal").textContent=c;$("fc").textContent=c;$("hc").textContent=c;$("prot").textContent=pr;$("fp").textContent=pr;$("hp").textContent=pr;$("moneyList").innerHTML=data.transactions.slice(0,12).map(x=>`<div class="entry row"><span>${esc(x.desc)}</span><strong>€${x.amount.toFixed(2)}</strong></div>`).join("");$("foodList").innerHTML=foods.map(x=>`<div class="entry row"><span>${esc(x.name)}</span><span>${x.cal} kcal · ${x.prot}g</span></div>`).join("")}
+render();
+</script></body></html>
